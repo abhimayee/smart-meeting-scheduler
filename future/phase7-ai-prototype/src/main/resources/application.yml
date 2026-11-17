@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: ai-meeting-service
+server:
+  port: ${AI_SERVICE_PORT:8085}
+  error:
+    include-message: never
+meeting-service:
+  url: ${MEETING_SERVICE_URL:http://localhost:8084}
+ai:
+  provider: ${AI_PROVIDER:mock}
+  openai:
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:}
+outbound.http.connect-timeout: ${OUTBOUND_HTTP_CONNECT_TIMEOUT:2s}
+outbound.http.read-timeout: ${OUTBOUND_HTTP_READ_TIMEOUT:300s}
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

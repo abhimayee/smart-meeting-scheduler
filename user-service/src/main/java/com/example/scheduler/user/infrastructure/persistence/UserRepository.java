@@ -1,0 +1,13 @@
+package com.example.scheduler.user.infrastructure.persistence;
+
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<UserEntity, UUID> {
+    Optional<UserEntity> findByEmail(String email);
+    @EntityGraph(attributePaths = "workingHours")
+    Optional<UserEntity> findWithWorkingHoursByEmail(String email);
+    boolean existsByEmail(String email);
+}

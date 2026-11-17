@@ -1,0 +1,1 @@
+calendar-service.url: ${CALENDAR_SERVICE_URL:http://calendar-service:8082}

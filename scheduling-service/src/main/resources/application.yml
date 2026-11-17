@@ -1,0 +1,10 @@
+spring:
+  application.name: scheduling-service
+  jackson.time-zone: UTC
+server.port: ${SCHEDULING_SERVICE_PORT:8083}
+server.error.include-message: never
+springdoc.swagger-ui.path: /swagger-ui.html
+calendar-service.url: ${CALENDAR_SERVICE_URL:http://localhost:8082}
+outbound.http.connect-timeout: ${OUTBOUND_HTTP_CONNECT_TIMEOUT:2s}
+outbound.http.read-timeout: ${OUTBOUND_HTTP_READ_TIMEOUT:5s}
+scheduler.slot-granularity-minutes: ${SLOT_GRANULARITY_MINUTES:15}

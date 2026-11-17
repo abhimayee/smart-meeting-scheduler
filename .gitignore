@@ -1,0 +1,51 @@
+.env
+.env.*
+!.env.example
+**/target/
+target/
+outputs/
+work/
+*.log
+*.log.*
+*.pid
+logs/
+
+# Local credentials, keys, and secret material
+*.secret
+*.token
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets/
+credentials.local.*
+credentials.*
+*credentials*.json
+
+# Exclude the unimplemented notification prototype from the initial publication
+future/notification-prototype/
+
+# Local database exports and snapshots (keep Flyway migration SQL tracked)
+*.dump
+*.pgdump
+*.backup
+*.bak
+*.sql.gz
+*.dump.sql
+*dump*.sql
+*backup*.sql
+database-dumps/
+db-dumps/
+dumps/
+backups/
+*.sqlite
+*.sqlite3
+*.db
+
+# Other generated build output
+**/build/
+dist/
+*.class
+*.jar

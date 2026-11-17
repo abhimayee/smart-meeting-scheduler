@@ -1,0 +1,147 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-smart_meeting_scheduler_docker}
+      POSTGRES_USER: ${DB_USERNAME:-scheduler}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the local .env file}
+    volumes:
+      - scheduler_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  user-service:
+    image: smart-meeting-scheduler/user-service:local
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_DB: ${POSTGRES_DB:-smart_meeting_scheduler_docker}
+      DB_USERNAME: ${DB_USERNAME:-scheduler}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the local .env file}
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8081/v3/api-docs || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  calendar-service:
+    image: smart-meeting-scheduler/calendar-service:local
+    build:
+      context: .
+      dockerfile: calendar-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_DB: ${POSTGRES_DB:-smart_meeting_scheduler_docker}
+      DB_USERNAME: ${DB_USERNAME:-scheduler}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the local .env file}
+      USER_SERVICE_URL: http://user-service:8081
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8082/v3/api-docs || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  scheduling-service:
+    image: smart-meeting-scheduler/scheduling-service:local
+    build:
+      context: .
+      dockerfile: scheduling-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      calendar-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CALENDAR_SERVICE_URL: http://calendar-service:8082
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8083/v3/api-docs || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  meeting-service:
+    image: smart-meeting-scheduler/meeting-service:local
+    build:
+      context: .
+      dockerfile: meeting-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      scheduling-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_DB: ${POSTGRES_DB:-smart_meeting_scheduler_docker}
+      DB_USERNAME: ${DB_USERNAME:-scheduler}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the local .env file}
+      USER_SERVICE_URL: http://user-service:8081
+      SCHEDULING_SERVICE_URL: http://scheduling-service:8083
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8084/v3/api-docs || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  ai-meeting-service:
+    image: smart-meeting-scheduler/ai-meeting-service:local
+    build:
+      context: .
+      dockerfile: future/phase7-ai-prototype/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      meeting-service:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MEETING_SERVICE_URL: http://meeting-service:8084
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://host.docker.internal:11434/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OUTBOUND_HTTP_CONNECT_TIMEOUT: ${OUTBOUND_HTTP_CONNECT_TIMEOUT:-2s}
+      OUTBOUND_HTTP_READ_TIMEOUT: ${OUTBOUND_HTTP_READ_TIMEOUT:-300s}
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8085/v3/api-docs || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
+
+volumes:
+  scheduler_postgres_data:

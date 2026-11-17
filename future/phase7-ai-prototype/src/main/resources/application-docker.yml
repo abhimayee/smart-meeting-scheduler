@@ -1,0 +1,1 @@
+meeting-service.url: ${MEETING_SERVICE_URL:http://meeting-service:8084}

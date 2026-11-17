@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: "jdbc:postgresql://postgres:5432/${POSTGRES_DB:smart_meeting_scheduler_docker}?currentSchema=user_service"
+    username: ${DB_USERNAME:scheduler}
+    password: ${DB_PASSWORD:}

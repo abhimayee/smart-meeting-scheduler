@@ -1,0 +1,26 @@
+spring:
+  config.import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  application.name: meeting-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smart_meeting_scheduler_it?currentSchema=meeting_service
+    username: ${DB_USERNAME:scheduler}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate.ddl-auto: validate
+    properties.hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    schemas: meeting_service
+    default-schema: meeting_service
+    create-schemas: true
+  jackson.time-zone: UTC
+server.port: ${MEETING_SERVICE_PORT:8084}
+server.error.include-message: never
+springdoc.swagger-ui.path: /swagger-ui.html
+user-service.url: ${USER_SERVICE_URL:http://localhost:8081}
+scheduling-service.url: ${SCHEDULING_SERVICE_URL:http://localhost:8083}
+meeting.scheduling-search-window-days: ${MEETING_SCHEDULING_SEARCH_WINDOW_DAYS:14}
+outbound.http.connect-timeout: ${OUTBOUND_HTTP_CONNECT_TIMEOUT:2s}
+outbound.http.read-timeout: ${OUTBOUND_HTTP_READ_TIMEOUT:5s}
